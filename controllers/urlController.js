@@ -357,7 +357,7 @@ exports.get_one_link = async (req, res, next) => {
 
 exports.create_link = async (req, res, next) => {
     let tx
-    let session, mongoUrls // mongo
+    let session, mongoUrls, mongoUsers // mongo
     let db_select
     try{
         db_select = req.query.db || 'sql'
@@ -367,6 +367,7 @@ exports.create_link = async (req, res, next) => {
         const is_custom = req.body.custom_link === true ? true : false
         let short_url = req.body.short_url
         let is_short_link_exist
+        let insertedId
 
         if(db_select === 'sql') {
             tx = await db.connect()
@@ -410,11 +411,13 @@ exports.create_link = async (req, res, next) => {
         }
 
         if(db_select === 'sql') {
-            await tx.query('INSERT INTO urls (long_link, short_link, user_id) VALUES ($1, $2, $3)', [long_url, short_url, req.userId])
+            const result = await tx.query('INSERT INTO urls (long_link, short_link, user_id) VALUES ($1, $2, $3) RETURNING id', [long_url, short_url, req.userId])
+
             await tx.query('commit')
+            insertedId = result.rows[0].id
 
         } else {
-            await mongoUrls.insertOne({
+            const result = await mongoUrls.insertOne({
                 long_link: long_url,
                 short_link: short_url,
                 user_id: new ObjectId(req.userId),
@@ -424,6 +427,8 @@ exports.create_link = async (req, res, next) => {
                 updated_at: new Date()
             }, {session: session})
 
+            insertedId = result.insertedId
+
             await session.commitTransaction()
         }
 
@@ -432,7 +437,8 @@ exports.create_link = async (req, res, next) => {
             message: 'Successfully created short link',
             data: {
                 long_url: long_url,
-                short_url: short_url
+                short_url: short_url,
+                inserted_id: insertedId
             }
         })
         
@@ -491,7 +497,7 @@ exports.edit_link = async (req, res, next) => {
 
         if(!check_url) throw_err('Link not found', statusCode['404_not_found'])
 
-        if((check_url.user_id).toString() !== req.userId) throw_err('You are not authorized to edit this link', statusCode['401_unauthorized'])
+        if((check_url.user_id).toString() !== (req.userId).toString()) throw_err('You are not authorized to edit this link', statusCode['401_unauthorized'])
 
         // * create shorter link with random string/custom and check if already exist in database
         if(!is_custom) {

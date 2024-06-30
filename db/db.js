@@ -6,7 +6,7 @@ const pool = new pg.Pool ({
     user: process.env.USER_POSTGRES,
     password: process.env.PASSWORD_POSTGRES,
     database: process.env.DATABASE_POSTGRES,
-    max: 20,
+    max: 100,
     // idleTimeoutMillis: 30000,
     // connectionTimeoutMillis: 2000,
 })

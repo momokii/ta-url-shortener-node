@@ -10,6 +10,8 @@ info:
 servers:
   - url: http://localhost:8889/api/v1
     description: Node Local Server
+  - url: https://node-url-oe7baktrna-et.a.run.app/api/v1
+    description: Node Live GCP Server
   - url: http://localhost:8888/api/v1
     description: Golang Local Server
 
@@ -809,6 +811,8 @@ paths:
                           long_url:
                             type: string
                           short_url:
+                            type: string
+                          inserted_id:
                             type: string
         '400':
           $ref: '#/components/schemas/DataInputNotValid'
