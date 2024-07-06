@@ -305,6 +305,8 @@ exports.change_data = async (req, res, next) => {
 
         if((new_role) && (req.role !== 1)) throw_err('just admin can change role', statusCode['401_unauthorized'])
 
+        if((req.role !== 1) && (req.body.user_id !== req.userId)) throw_err('User can not change other user data', statusCode['401_unauthorized'])
+
         if(db_select === 'sql') {
             tx = await db.connect()
             await tx.query('begin')
