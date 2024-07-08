@@ -724,9 +724,9 @@ paths:
                           properties:
                             id:
                               type: string
-                            short_url:
+                            short_link:
                               type: string
-                            long_url:
+                            long_link:
                               type: string
                             user:
                               type: object

@@ -298,7 +298,7 @@ exports.get_one_link = async (req, res, next) => {
             delete url_data._id
         }
 
-        if(((url_data.user_id).toString() !== req.userId) && (req.role !== 1)) throw_err('You are not authorized to edit this link', statusCode['401_unauthorized'])
+        if(((url_data.user_id).toString() !== req.userId) && (req.role !== 1)) throw_err('You are not authorized to see this link', statusCode['401_unauthorized'])
 
 
         if(db_select === 'sql') {
@@ -307,12 +307,13 @@ exports.get_one_link = async (req, res, next) => {
         } else {
             url_history = await mongoUrlsHistory.find({
                 url_id: url_id
-            }).project({long_link: 1, short_link: 1, user_id: 1, total_visited: 1, created_at: 1}).toArray()
+            }).project({long_link: 1, short_link: 1, url_id:1, user_id: 1, total_visited: 1, created_at: 1}).toArray()
 
             url_history = url_history.map(row => {
                 return {
                     id: row._id,
                     long_link: row.long_link,
+                    url_id: row.url_id,
                     short_link: row.short_link,
                     user_id: row.user_id,
                     total_visited: row.total_visited,
