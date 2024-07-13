@@ -32,7 +32,7 @@ exports.login = async (req, res, next) => {
         } else {
             user = (await db.query('SELECT id, username, name, password, role, is_active FROM users WHERE username = $1', [username])).rows[0]
 
-            user_id = user.id
+            user_id = user.id.toString()
 
             if(!user) throw_err('Wrong Username / Password', statusCode['400_bad_request'])
 
