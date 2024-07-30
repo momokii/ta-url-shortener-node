@@ -99,9 +99,9 @@ exports.get_all_links = async (req, res, next) => {
 
             if(search) query = query + ` and (short_link ilike '%${search}%' or long_link ilike '%${search}%')`
 
-            links = await db.query(query)
-            total_links = links.rowCount
-            links = (links.rows).splice(offset, size)
+            total_links = parseInt((await db.query("select count (*) from ("+query+") as total")).rows[0].count)
+            links = await db.query(query+ " order by a.id desc limit $1 offset $2", [size, offset])
+            links = links.rows
             links = links.map(row => {
                 return {
                     id: row.id,
@@ -133,10 +133,12 @@ exports.get_all_links = async (req, res, next) => {
             }
 
             links = await mongoUrls.find(query)
+            .skip(offset)
+            .limit(size)
             .project({long_link: 1, short_link: 1, user_id: 1, last_visited: 1, total_visited: 1, created_at: 1, updated_at: 1})
             .toArray()
 
-            total_links = links.length
+            total_links = await mongoUrls.countDocuments(query)
             
             links = links.splice(offset, size)
 
@@ -203,9 +205,9 @@ exports.get_link_self = async (req, res, next) => {
 
             if(search) query = query + ` and (short_link ilike '%${search}%' or long_link ilike '%${search}%')`
             
-            links = await db.query(query)
-            total_links = links.rowCount
-            links = (links.rows).splice(offset, size)
+            total_links = parseInt((await db.query("select count (*) from ("+query+") as total")).rows[0].count)
+            links = await db.query(query+ " order by a.id desc limit $1 offset $2", [size, offset])
+            links = links.rows
 
         } else {
             const mongoUrls = mongo.db(MONGODB_NAME).collection('urls')
@@ -221,10 +223,11 @@ exports.get_link_self = async (req, res, next) => {
             }
 
             links = await mongoUrls.find(query)
+            .skip(offset)
+            .limit(size)
             .project({long_link: 1, short_link: 1, user_id: 1, last_visited: 1, total_visited: 1, created_at: 1, updated_at: 1})
             .toArray()
-            total_links = links.length
-            links = links.splice(offset, size)
+            total_links = await mongoUrls.countDocuments(query)
             links = links.map(row => {
                 return {
                     id: row._id,
