@@ -313,6 +313,9 @@ exports.change_data = async (req, res, next) => {
 
             user = (await tx.query('SELECT id, username, is_active FROM users WHERE id = $1', [user_id])).rows[0]
 
+            if(!user) throw_err('User not found', statusCode['401_unauthorized'])
+            if((req.role === 1) && ((user.id).toString() === req.userId) && (new_role)) throw_err('Admin can not change self role data', statusCode['401_unauthorized'])
+
         } else {
             session = mongo.startSession()
             mongoUsers = mongo.db(MONGODB_NAME).collection('users')
@@ -324,10 +327,10 @@ exports.change_data = async (req, res, next) => {
             }, {session: session})
             .project({username: 1})
             .toArray())[0]
+
+            if(!user) throw_err('User not found', statusCode['401_unauthorized'])
+            if((req.role === 1) && ((user._id).toString() === req.userId) && (new_role)) throw_err('Admin can not change self role data', statusCode['401_unauthorized'])
         }
-        
-        if(!user) throw_err('User not found', statusCode['401_unauthorized'])
-        if((req.role === 1) && ((user._id).toString() === req.userId) && (new_role)) throw_err('Admin can not change self role data', statusCode['401_unauthorized'])
 
         if(db_select === 'sql') {
             let data = [new_name]
